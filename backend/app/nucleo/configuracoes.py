@@ -1,0 +1,95 @@
+"""Configurações da aplicação (12-factor: valores vêm de variáveis de ambiente).
+
+Usa pydantic-settings para tipar e validar a configuração. Todas as variáveis
+podem ser sobrescritas por ambiente com o prefixo ``EMOTIONLENS_`` ou por um
+arquivo ``.env`` na raiz do backend.
+"""
+from __future__ import annotations
+
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Configuracoes(BaseSettings):
+    """Parâmetros de execução do backend de análise emocional."""
+
+    model_config = SettingsConfigDict(
+        env_prefix="EMOTIONLENS_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    # --- Metadados da aplicação ---
+    nome_app: str = "EmotionLens API"
+    versao_app: str = "1.0.0"
+    depuracao: bool = False
+
+    # --- CORS (origem do frontend Vite/React) ---
+    origens_cors: list[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+
+    # --- Limites de upload ---
+    # 200 MB: mesmo limite validado no frontend (utils/constants.js).
+    tamanho_maximo_upload_bytes: int = 200 * 1024 * 1024
+    tipos_video_permitidos: set[str] = {
+        "video/mp4",
+        "video/avi",
+        "video/x-msvideo",
+        "video/quicktime",
+    }
+
+    # --- Seleção de dispositivo (aceleração) ---
+    # "auto" usa GPU (CUDA) quando disponível, senão CPU. Também aceita "cpu"/"cuda".
+    dispositivo: str = "auto"
+
+    # --- Amostragem de frames do vídeo ---
+    # Capturar 10 FPS aumenta muito a acurácia sem estourar limite.
+    fps_alvo: float = 10.0
+    # Teto absoluto de frames a analisar, protegendo vídeos longos.
+    max_frames_analisados: int = 600
+
+    # --- Detecção de faces (YOLOv8-face) ---
+    # Caminho/nome dos pesos do detector. Baixado uma vez pelo ultralytics.
+    modelo_detector_face: str = "yolov8n-face.pt"
+    # Aumentando para 0.65 evitamos que sombras ou mãos sejam detectadas como rosto.
+    confianca_minima_deteccao: float = 0.65
+    # Lado mínimo (px) da face; rostos menores que 80px geralmente geram emoções erradas (ruído).
+    tamanho_minimo_face: int = 80
+
+    # --- Classificação emocional (HSEmotion) ---
+    # Modelo de 7 classes, compatível com as 7 emoções do frontend.
+    nome_modelo_emocao: str = "enet_b2_7"
+
+    # --- Suavização temporal ---
+    # Janela de 9 (quase 1 segundo a 10 FPS) gera um gráfico muito mais suave e elimina ruídos rápidos.
+    janela_suavizacao: int = 9
+
+    # --- SQL Server ---
+    db_servidor: str = "localhost"
+    db_banco: str = "EmotionLensDB"
+    # Windows Authentication (Trusted_Connection) por padrão — dispensa usuário/senha.
+    # Defina como false para usar SQL Authentication (db_usuario/db_senha).
+    db_conexao_confiavel: bool = True
+    db_usuario: str = ""
+    db_senha: str = ""
+    db_driver: str = "ODBC Driver 17 for SQL Server"
+    db_tempo_limite_conexao: int = 5
+
+    # --- Criptografia em duas camadas (substituição de emoções + AES-256-GCM) ---
+    chave_criptografia: str = "EmotionLens-AES-Analise-Local-2026"
+
+    # --- Autenticação local ---
+    # Em produção, use uma chave longa, aleatória e exclusiva do ambiente.
+    chave_jwt: str = "troque-esta-chave-jwt-em-producao"
+    algoritmo_jwt: str = "HS256"
+    jwt_expiracao_minutos: int = 480
+
+
+@lru_cache
+def obter_configuracoes() -> Configuracoes:
+    """Retorna uma instância única (cacheada) de Configuracoes."""
+    return Configuracoes()

@@ -8,9 +8,21 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('emotionlens.access_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   (res) => res,
   (err) => {
+    if (err.response?.status === 401 && err.config?.url !== '/auth/login') {
+      localStorage.removeItem('emotionlens.access_token');
+      window.dispatchEvent(new Event('emotionlens:unauthorized'));
+    }
     const message =
       err.response?.data?.detail ||
       err.response?.data?.message ||
@@ -19,5 +31,3 @@ api.interceptors.response.use(
     return Promise.reject({ ...err, friendlyMessage: message });
   }
 );
-
-export const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';

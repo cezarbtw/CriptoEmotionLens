@@ -1,0 +1,27 @@
+/*
+    EmotionLens — índices de suporte às consultas do repositório.
+
+    Execute após constraints.sql.
+*/
+
+USE EmotionLensDB;
+GO
+
+-- Suporta listar_todas(): sessões ativas do profissional, mais recentes primeiro.
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_sessoes_usuario_ativas_id')
+    CREATE INDEX IX_sessoes_usuario_ativas_id
+        ON dbo.sessoes (usuario_id, id DESC)
+        WHERE excluido_em IS NULL;
+GO
+
+-- Suporta futuras consultas/relatórios por período.
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_sessoes_data_sessao')
+    CREATE INDEX IX_sessoes_data_sessao ON dbo.sessoes (data_sessao);
+GO
+
+-- Mantido para instalações antigas que ainda populam pontuações abertas.
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_pontuacoes_emocao_id')
+    CREATE INDEX IX_pontuacoes_emocao_id
+        ON dbo.pontuacoes_emocao_sessao (emocao_id)
+        INCLUDE (pontuacao);
+GO
