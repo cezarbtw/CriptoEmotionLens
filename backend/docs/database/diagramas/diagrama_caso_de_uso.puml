@@ -1,0 +1,18 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Usuário" as User
+
+rectangle "Sistema de Reconhecimento Emocional" {
+    usecase "Enviar Mídia para Análise" as UC1
+    usecase "Visualizar Detecção Facial e Emoções" as UC2
+    usecase "Consultar Histórico Cifrado" as UC3
+    usecase "Exportar Relatório Descriptografado" as UC4
+}
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+@enduml

@@ -1,0 +1,49 @@
+@startuml
+autonumber
+actor "Cliente" as User
+participant "API (Main Thread)" as Main
+participant "Worker Thread (IA)" as WorkerIA
+participant "Worker Thread (Segurança)" as WorkerSec
+database "Banco de Dados" as DB
+
+User -> Main: POST /analisar-video (Upload Vídeo)
+activate Main
+
+Main -> Main: Validar arquivo e gerar Job_ID
+Main -> WorkerIA: Despachar tarefa de inferência (Assíncrono)
+activate WorkerIA
+
+Main --> User: 202 Accepted (Job_ID retornado)
+deactivate Main
+
+note over WorkerIA: Processamento em paralelo\nsem bloquear a API principal
+WorkerIA -> WorkerIA: Extrair frames e classificar linha do tempo
+WorkerIA -> WorkerSec: Enviar dados brutos para pipeline seguro
+deactivate WorkerIA
+activate WorkerSec
+
+WorkerSec -> WorkerSec: Aplicar Ofuscação MCE
+WorkerSec -> WorkerSec: Cifrar via AES-256-GCM
+WorkerSec -> DB: Salvar payload cifrado (Job_ID = concluído)
+activate DB
+DB --> WorkerSec: Confirmação de persistência
+deactivate DB
+deactivate WorkerSec
+
+... Polling do Cliente ...
+
+User -> Main: GET /jobs/{Job_ID}/resultado
+activate Main
+Main -> DB: Buscar registro por Job_ID
+activate DB
+DB --> Main: Payload Cifrado
+deactivate DB
+
+Main -> WorkerSec: Solicitar Decifragem e Restauração MCE
+activate WorkerSec
+WorkerSec --> Main: Dados Legíveis Restaurados
+deactivate WorkerSec
+
+Main --> User: 200 OK (Relatório Completo)
+deactivate Main
+@enduml

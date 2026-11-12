@@ -1,0 +1,35 @@
+@startuml
+autonumber
+actor "Cliente" as User
+participant "API Router" as API
+participant "Detector IA (YOLO)" as IA
+participant "Ofuscação (MCE)" as MCE
+participant "Criptografia (AES-GCM)" as AES
+database "Banco de Dados" as DB
+
+User -> API: POST /analisar (Imagem)
+activate API
+
+API -> IA: processar_inferencia(imagem)
+activate IA
+IA --> API: {probabilidades: {FELIZ: 0.92, ...}}
+deactivate IA
+
+API -> MCE: aplicar_mce(dados)
+activate MCE
+MCE --> API: {probabilidades: {T1975: 0.92, ...}}
+deactivate MCE
+
+API -> AES: cifrar(dados_ofuscados)
+activate AES
+AES --> API: payload_seguro (bytes + tag + nonce)
+deactivate AES
+
+API -> DB: INSERT INTO analises (payload_seguro)
+activate DB
+DB --> API: Sucesso (ID: 101)
+deactivate DB
+
+API --> User: 200 OK (Resultado da Análise)
+deactivate API
+@enduml

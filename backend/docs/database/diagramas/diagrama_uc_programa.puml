@@ -1,0 +1,26 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Serviço da Aplicação" as App
+actor "Banco de Dados" as DB
+
+rectangle "Processamento Interno do Sistema (Backend)" {
+    usecase "UC06: Extrair Frames e Detectar Faces (YOLO)" as UC6
+    usecase "UC07: Calcular Distribuição de Probabilidades" as UC7
+    usecase "UC08: Ofuscar Rótulos Emocionais (Cifra MCE)" as UC8
+    usecase "UC09: Cifrar Carga de Dados (AES-256-GCM)" as UC9
+    usecase "UC10: Persistir Registro Cifrado" as UC10
+    usecase "UC11: Decifrar e Restaurar Payload na Leitura" as UC11
+}
+
+App --> UC6
+App --> UC7
+App --> UC8
+App --> UC9
+App --> UC10
+App --> UC11
+
+UC10 --> DB
+UC11 --> DB
+@enduml

@@ -1,0 +1,39 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class AnaliseController {
+    +submeter_midia(arquivo: UploadFile): Response
+    +obter_resultado(job_id: str): Response
+    +listar_historico(): Response
+}
+
+class DetectorIA {
+    -modelo_yolo: YOLO
+    +extrair_faces(frame: bytes): List[Face]
+    +classificar_emocoes(face_crop: bytes): Dict[str, float]
+}
+
+class ModuloOfuscacao {
+    -TABELA_SUBSTITUICAO: Dict[str, str]
+    +aplicar_mce(dados: Dict): Dict
+    +desfazer_mce(dados: Dict): Dict
+    -_substituir(texto: str): str
+}
+
+class CriptografiaAES {
+    -chave_mestra: bytes
+    +cifrar_payload(conteudo: bytes): Dict[str, bytes]
+    +decifrar_payload(cifrado: bytes, nonce: bytes, tag: bytes): bytes
+}
+
+class AnaliseRepository {
+    -conexao_db: Database
+    +salvar_registro(payload_cifrado: bytes): int
+    +buscar_por_id(id: int): bytes
+}
+
+AnaliseController --> DetectorIA : executa
+AnaliseController --> ModuloOfuscacao : sanitiza via
+AnaliseController --> CriptografiaAES : blinda via
+AnaliseController --> AnaliseRepository : persiste via
+@enduml

@@ -7,3 +7,6 @@ dist
 
 # Configuração local do Claude Code (não é parte da aplicação)
 .claude/
+out/
+*.docx
+

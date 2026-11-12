@@ -1,0 +1,20 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Cliente / Usuário" as User
+
+rectangle "Sistema de Reconhecimento Emocional (Visão Cliente)" {
+    usecase "UC01: Realizar Upload de Imagem/Vídeo" as UC1
+    usecase "UC02: Acompanhar Status do Processamento" as UC2
+    usecase "UC03: Visualizar Resultados e Linha do Tempo" as UC3
+    usecase "UC04: Consultar Histórico de Análises Anteriores" as UC4
+    usecase "UC05: Exportar Relatório de Emoções" as UC5
+}
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+@enduml 
